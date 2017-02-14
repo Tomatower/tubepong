@@ -5,6 +5,6 @@
 namespace openage {
 namespace tube {
 
-typedef int tube_time_t;
+typedef float tube_time_t;
 
 }} // openage::tube

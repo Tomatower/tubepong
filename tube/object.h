@@ -7,10 +7,8 @@
 namespace openage {
 namespace tube {
 
-template <class _T>
 class TubeObject {
 public:
-	const _T &at(tube_time_t time);
 };
 
 }} // openage::tube

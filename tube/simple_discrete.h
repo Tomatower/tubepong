@@ -11,14 +11,24 @@ template<typename _T>
 class SimpleDiscrete : public SimpleType<_T> {
 public:
 
-	_T get();
-
+	_T get() const;
+	_T get(const tube_time_t &) const;
 public:
 };
 
 template <typename _T>
-_T SimpleDiscrete<_T>::get() {
-	return this->e_now->value;
+_T SimpleDiscrete<_T>::get() const {
+	if (this->e_now == nullptr) { // TODO THIS SUCKS!
+		return _T();
+	} else {
+		return this->e_now->value;
+	}
+}
+
+template <typename _T>
+_T SimpleDiscrete<_T>::get(const tube_time_t &time) const {
+	this->set_now(time);
+	return this->get();
 }
 
 }} // openage::tube

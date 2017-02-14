@@ -11,15 +11,17 @@ template<typename _T>
 class SimpleType {
 protected:
 	tubebase<_T> container;
-	tubeelement<_T> *e_now;
-	tube_time_t now;
+	mutable tubeelement<_T> *e_now;
+	mutable tube_time_t now;
 
 public:
-	// Reader mode
-	virtual void set_now(const tube_time_t &t);
+	SimpleType(); 
 
-	virtual _T get() = 0;
-	virtual _T get(const tube_time_t &t);
+	// Reader mode
+	virtual void set_now(const tube_time_t &t) const;
+
+	virtual _T get() const = 0;
+	virtual _T get(const tube_time_t &t) const;
 public:
 	// Inserter mode
 	void set_drop(const tube_time_t &at, const _T &value);
@@ -27,16 +29,22 @@ public:
 };
 
 template <typename _T>
-void SimpleType<_T>::set_now(const tube_time_t &t) {
+SimpleType<_T>::SimpleType() :
+	now(),
+	e_now(nullptr)
+{}
+
+template <typename _T>
+void SimpleType<_T>::set_now(const tube_time_t &t) const {
 	now = t;
 
 	// Iterate forward until the element time is smaller than time
-	while (e_now != nullptr && e_now->time >= now) {
+	while (e_now != nullptr && e_now->prev != e_now && e_now->time >= now) {
 		e_now = e_now->prev;
 	}
 
 	// Iterate back until the element time is larger than time
-	while (e_now != nullptr && e_now->time < now) {
+	while (e_now != nullptr && e_now->next != e_now && e_now->time < now) {
 		e_now = e_now->next;
 	}
 
@@ -47,7 +55,7 @@ void SimpleType<_T>::set_now(const tube_time_t &t) {
 }
 
 template <typename _T>
-_T SimpleType<_T>::get(const tube_time_t &t) {
+_T SimpleType<_T>::get(const tube_time_t &t) const {
 	set_now(t);
 	return get();
 }

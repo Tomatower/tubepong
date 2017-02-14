@@ -3,6 +3,7 @@
 #pragma once
 
 #include "tube.h"
+#include <iostream>
 
 namespace openage {
 namespace tube {
@@ -25,8 +26,10 @@ class tubebase {
 
 	// TODO create a pool where it might be possible to draw memory from
 public:
+	tubebase();
+
 	// Get the last element with e->time <= time
-	tubeelement<_T> *last(const tube_time_t &time, tubeelement<_T>* hint=nullptr);
+	tubeelement<_T> *last(const tube_time_t &time, tubeelement<_T>* hint=nullptr) const;
 
 	// Create a new element and insert it into the tree
 	tubeelement<_T> *create(const tube_time_t &, const _T& value);
@@ -68,27 +71,32 @@ public:
 };
 
 
-
+template<typename _T>
+tubebase<_T>::tubebase() {
+	create(tube_time_t(), _T());
+}
 
 template <typename _T>
-tubeelement<_T> *tubebase<_T>::last(const tube_time_t &time, tubeelement<_T> *hint) {
+tubeelement<_T> *tubebase<_T>::last(const tube_time_t &time, tubeelement<_T> *hint) const {
 	tubeelement<_T> *e = hint ? hint : begin;
 
 	if (e == nullptr) {
-		//AUAUAUAUAUA!
 //		throw Error(ERR << "Empty container list!");
+		return e;
 	}
 
 	// Search backward for this timeblob
 	if (e->time < time) { 
-		while(e != nullptr && e->time < time) {
+		while(e != nullptr && e->next != e && e->time < time) {
 			e = e->next;
 		}
 	} else { // Search forward
-		while (e != nullptr && e->time > time) {
+		tubeelement<_T> *t = e;
+		while (e != nullptr && e->prev != e && e->time > time) {
+			t = e;
 			e = e->prev;
 		}
-		e = e->next;
+		e = t;
 	}
 	return e;
 }
