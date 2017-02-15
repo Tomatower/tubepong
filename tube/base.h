@@ -133,8 +133,10 @@ void tubebase<_T>::insert(tubeelement<_T> *e) {
 	// if next is nullptr, then it has to be at the end, so update the end
 	if (at->next == nullptr || end == at) { // TODO VERIFY THIS!
 		at->next = e;
-		e->prev = e;
+		e->prev = at;
 		end = e;
+
+		return;
 	}
 
 	// the list is not empty, it is not at the beginning, it is not at the end:
@@ -159,12 +161,20 @@ void tubebase<_T>::erase_after(tubeelement<_T> *last_valid) {
 template <typename _T>
 void tubebase<_T>::erase(tubeelement<_T> *e) {
 	if (e == nullptr) return;
+	if (begin == e) {
+		begin = e->next;
+	}
+	if (end == e) {
+		end = e->prev;
+	}
+
 	if (e->next != nullptr) {
 		e->next->prev = e->prev;
 	}
 	if (e->prev != nullptr) {
 		e->prev->next = e->next;
 	}
+	//Update if we delete at /end or /begin
 	delete e; // TODO Memory management magick!
 }
 
