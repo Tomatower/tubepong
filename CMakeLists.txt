@@ -9,7 +9,7 @@ set(CURSES_NEED_NCURSES TRUE)
 find_package(Curses REQUIRED)
 
 include_directories(${CURSES_INCLUDE_DIR})
-link_libraries (libtube ${CURSES_LIBRARIES})
+link_libraries (tube ${CURSES_LIBRARIES})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb -pedantic -Wall -Wextra")
 add_executable (tubepong

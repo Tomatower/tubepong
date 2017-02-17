@@ -1,5 +1,5 @@
 
-add_library(libtube STATIC
+add_library(tube STATIC
 	base.cpp
 	container_iterator.cpp
 	event.cpp
@@ -13,6 +13,6 @@ add_library(libtube STATIC
 	unordered_map.cpp
 )
 
-set_property(TARGET libtube PROPERTY CXX_STANDARD 11)
+set_property(TARGET tube PROPERTY CXX_STANDARD 11)
 
 add_subdirectory(test)

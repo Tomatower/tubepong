@@ -8,17 +8,18 @@ std::vector<event> &AIInput::getInputs(
 		const PongBall &ball,
 		const tube::tube_time_t &now) {
 	this->event_cache.clear();
+	
+	auto position = player.position.get(now);
 
-	if (ball.position.get(now)[0] > player.position.get(now)) {
-		event evnt;
-		evnt.player = player.id;
-		evnt.state = event::UP;
-		event_cache.push_back(evnt);
-	} else {
-		event evnt;
-		evnt.player = player.id;
-		evnt.state = event::DOWN;
-		event_cache.push_back(evnt);
+	// Yes i know, there is /3 used - instead of the logical /2 - this is to 
+	// create a small safety boundary of 1/3 for enhanced fancyness
+	
+	// Ball is below position
+	if (ball.position.get(now)[1] > position + player.size.get(now) / 3) {
+		event_cache.push_back(event(player.id, event::DOWN));
+	} else if (ball.position.get(now)[1] < position - player.size.get(now) / 3) {
+		// Ball is above position
+		event_cache.push_back(event(player.id, event::UP));
 	}
 
 	return this->event_cache;

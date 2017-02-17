@@ -40,6 +40,8 @@ int main() {
 		
 		state.ball.speed.set_drop(now, init_speed);
 		state.ball.position.set_drop(now, state.resolution * 0.5);
+		state.p1.position.set_drop(now, state.resolution[1] / 2);
+		state.p2.position.set_drop(now, state.resolution[1] / 2);
 		
 		gui.draw(state, now); //initial drawing with corrected ball
 
@@ -82,7 +84,7 @@ int main() {
 			usleep(10000);	
 				
 			double dt = std::chrono::duration_cast<std::chrono::milliseconds>((Clock::now() - loop_start)).count();
-			now += dt;
+			now += 10; //dt;
 			loop_start = Clock::now();
 		}
 	}
