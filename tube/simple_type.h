@@ -22,6 +22,14 @@ public:
 
 	virtual _T get() const = 0;
 	virtual _T get(const tube_time_t &t) const;
+
+	virtual _T operator ()() const {
+		return std::move(get());
+	}
+
+	virtual _T operator ()(const tube_time_t &now) {
+		return std::move(get(now));
+	}
 public:
 	// Inserter mode
 	void set_drop(const tube_time_t &at, const _T &value);
@@ -30,28 +38,14 @@ public:
 
 template <typename _T>
 SimpleType<_T>::SimpleType() :
-	now(),
-	e_now(nullptr)
+	e_now(nullptr),
+	now()
 {}
 
 template <typename _T>
 void SimpleType<_T>::set_now(const tube_time_t &t) const {
 	now = t;
-
-	// Iterate forward until the element time is smaller than time
-	while (e_now != nullptr && e_now->prev != e_now && e_now->time >= now) {
-		e_now = e_now->prev;
-	}
-
-	// Iterate back until the element time is larger than time
-	while (e_now != nullptr && e_now->next != e_now && e_now->time < now) {
-		e_now = e_now->next;
-	}
-
-	// If the shaking-operation above was not successfull, find a new one
-	if (e_now == nullptr) {
-		e_now = container.last(t);
-	}
+	e_now = container.last(t, e_now);
 }
 
 template <typename _T>

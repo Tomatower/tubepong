@@ -13,7 +13,7 @@ namespace tests {
 
 class test_tube_element {
 public:
-	test_tube_element(tube_time_t t, int32_t data) : 
+	test_tube_element(tube_time_t t, int32_t data) :
 		time(t), 
 		data(data)
 	{}
@@ -30,23 +30,49 @@ void container() {
 	// Check the base container type
 	{
 		tubebase<int> c;
-		c.create(0, 0);
-		c.create(1, 1);
-		c.create(10, 2);
+		auto p0 = c.create(0, 0);
+		auto p1 = c.create(1, 1);
+		auto p2 = c.create(10, 2);
 
+		// last function tests without hints
 		TESTEQUALS(c.last(0)->value, 0);
-		TESTEQUALS(c.last(1)->value, 1);
+		TESTEQUALS(c.last(1)->value, 1); //last shall give >= not only > !
 		TESTEQUALS(c.last(5)->value, 1);
 		TESTEQUALS(c.last(10)->value, 2);
 		TESTEQUALS(c.last(47)->value, 2);
 
+		// last() with hints. Yes this can make a difference. we want to be
+		// absolutely shure!
+		// hint p1
+		TESTEQUALS(c.last(0, p0)->value, 0);
+		TESTEQUALS(c.last(1, p0)->value, 1); //last shall give >= not only > !
+		TESTEQUALS(c.last(5, p0)->value, 1);
+		TESTEQUALS(c.last(10, p0)->value, 2);
+		TESTEQUALS(c.last(47, p0)->value, 2);
+
+		TESTEQUALS(c.last(0, p1)->value, 0);
+		TESTEQUALS(c.last(1, p1)->value, 1); //last shall give >= not only > !
+		TESTEQUALS(c.last(5, p1)->value, 1);
+		TESTEQUALS(c.last(10, p1)->value, 2);
+		TESTEQUALS(c.last(47, p1)->value, 2);
+
+		TESTEQUALS(c.last(0, p2)->value, 0);
+		TESTEQUALS(c.last(1, p2)->value, 1); //last shall give >= not only > !
+		TESTEQUALS(c.last(5, p2)->value, 1);
+		TESTEQUALS(c.last(10, p2)->value, 2);
+		TESTEQUALS(c.last(47, p2)->value, 2);
+
+		// Now test the basic erase() function
 		c.erase(c.last(1));
-		
+
 		TESTEQUALS(c.last(1)->value, 0);
 		TESTEQUALS(c.last(5)->value, 0);
 		TESTEQUALS(c.last(47)->value, 2);
 
-		c.erase_after(c.last(99));
+		c.erase_after(c.last(99)); // we dont want to have the element itself erased!
+		TESTEQUALS(c.last(47)->value, 2);
+
+		c.erase_after(c.last(5)); // now since 10 > 5, element with value 2 has to be gone
 		TESTEQUALS(c.last(47)->value, 0);
 	}
 
@@ -55,10 +81,10 @@ void container() {
 		SimpleContinuous<float> c;
 		c.set_insert(0, 0);
 		c.set_insert(10, 1);
-		
+
 		c.set_now(0);
 		TESTEQUALS(c.get(), 0);
-		
+
 		c.set_now(1);
 		TESTEQUALS_FLOAT(c.get(), 0.1, 1e-7);
 	}
@@ -67,10 +93,10 @@ void container() {
 		SimpleContinuous<int> c;
 		c.set_insert(0, 0);
 		c.set_insert(10, 10);
-		
+
 		c.set_now(0);
 		TESTEQUALS(c.get(), 0);
-		
+
 		c.set_now(1);
 		TESTEQUALS(c.get(), 1);
 	}
@@ -79,10 +105,10 @@ void container() {
 		SimpleDiscrete<int> c;
 		c.set_insert(0, 0);
 		c.set_insert(10, 10);
-		
+
 		c.set_now(0);
 		TESTEQUALS(c.get(), 0);
-		
+
 		c.set_now(1);
 		TESTEQUALS(c.get(), 0);
 
@@ -105,32 +131,28 @@ void container() {
 		TESTEQUALS(c.get(), 10);
 	}
 
-	{
-		
-	}
-
 	// Iterate tests
 /*	{
 		Container<test_tube_element> container(timer);
-	
+
 		container.insert(std::make_shared<test_tube_element>(test_tube_element(10, 0)));
 		container.insert(std::make_shared<test_tube_element>(test_tube_element(20, 1)));
-		
+
 		// Iterate over everything with boundaries
 		{
 			auto it = container.iterate(0, 30);
 			TESTEQUALS(it.valid(), true);
-			
+
 			TESTEQUALS(it->data, 0);
 			++it;
 			TESTEQUALS(it.valid(), true);
-			
+
 			TESTEQUALS(it->data, 1);
 			++it;
 			TESTEQUALS(it.valid(), false);
 
 		}
-		
+
 		// Iterate only over the first, with boundaries
 		{
 			auto it = container.iterate(0, 15);
@@ -148,7 +170,7 @@ void container() {
 			++it;
 			TESTEQUALS(it.valid(), false);
 		}
-		
+
 		// Iterate out of boundaries
 		{
 			auto it = container.iterate(100, 200);
@@ -168,3 +190,4 @@ void container() {
 int main() {
 	openage::tube::tests::container();
 }
+

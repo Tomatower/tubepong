@@ -3,13 +3,17 @@
 #pragma once
 
 #include "tube.h"
+
 #include <iostream>
+#include <limits>
+#include <cassert>
 
 namespace openage {
 namespace tube {
 
 template <typename _T>
 class tubeelement;
+
 /**
  * A timely ordered list with several management functions
  *
@@ -35,7 +39,7 @@ public:
 	tubeelement<_T> *create(const tube_time_t &, const _T& value);
 
 	// Insert a newly ekement into the tree, that has not yet been inserted.
-	void insert(tubeelement<_T> *);
+	void insert(tubeelement<_T> *, tubeelement<_T> *hint = nullptr);
 
 	// Erase the whole list after this element until the end.
 	void erase_after(tubeelement<_T> *last_valid);
@@ -73,34 +77,59 @@ public:
 
 template<typename _T>
 tubebase<_T>::tubebase() {
-	create(tube_time_t(), _T());
+	//Create a default element at -Inf, that can always be dereferenced - so there will by definition never be
+	//a element that cannot be dereferenced
+	create(-std::numeric_limits<tube_time_t>::infinity(), _T());
 }
 
+/** 
+ * Select the element that directly preceedes the given timestamp.
+ *
+ * Without a hint, start to iterate at the beginning of the buffer, and return 
+ * the element last element before e->time > time. 
+ * This method returns nullptr, if begin->time > time. 
+ **/
 template <typename _T>
 tubeelement<_T> *tubebase<_T>::last(const tube_time_t &time, tubeelement<_T> *hint) const {
 	tubeelement<_T> *e = hint ? hint : begin;
 
 	if (e == nullptr) {
-//		throw Error(ERR << "Empty container list!");
+		//throw Error(ERR << "Empty container list!");
 		return e;
 	}
 
-	// Search backward for this timeblob
-	if (e->time < time) { 
-		while(e != nullptr && e->next != e && e->time < time) {
+	if (begin->time > time){
+		// This will never happen due to the begin->time == -Inf magic!
+		assert(false);
+		return nullptr;
+	}
+
+	// Search in the queue
+	if (time > e->time) { // the searched element is supposed to be AFTER the hint
+		// perform the search via ->next
+		while (e->next != nullptr && time >= e->next->time) {
 			e = e->next;
 		}
-	} else { // Search forward
-		tubeelement<_T> *t = e;
-		while (e != nullptr && e->prev != e && e->time > time) {
-			t = e;
+		// e is now one of two options:
+		// 1. e == end: The last element of the queue was smaller than `time`
+		// 2. e != end: There was a element with `e->time` > `time`
+	} else {
+		// the searched element is supposed to be BEFORE the hint
+		// perform the search via ->prev
+		while (e->prev != nullptr && time < e->time) {
 			e = e->prev;
 		}
-		e = t;
+		// e is now one of two options: 
+		// 1. e == begin: The time was before every element in the queue
+		// 2. e != begin: There was an element with `e->time` > `time`
 	}
+
 	return e;
 }
 
+/**
+ * Create and insert a new element into this tube
+ */
 template <typename _T>
 tubeelement<_T> *tubebase<_T>::create(const tube_time_t &time, const _T& value) {
 	// TODO this has to be managed by a memory pool!
@@ -109,8 +138,11 @@ tubeelement<_T> *tubebase<_T>::create(const tube_time_t &time, const _T& value) 
 	return e;
 }
 
+/**
+ * Determine where to insert, and update all references
+ */
 template <typename _T>
-void tubebase<_T>::insert(tubeelement<_T> *e) {
+void tubebase<_T>::insert(tubeelement<_T> *e, tubeelement<_T> *hint) {
 	// There are no elements in the list right now.
 	if (begin == nullptr) {
 		begin = e;
@@ -118,7 +150,7 @@ void tubebase<_T>::insert(tubeelement<_T> *e) {
 		return;
 	}
 
-	tubeelement<_T>* at = last(e->time);
+	tubeelement<_T>* at = last(e->time, hint);
 
 	// if "last" cannot point at a location, so there was no element _before_
 	// the newly inserted
@@ -126,27 +158,25 @@ void tubebase<_T>::insert(tubeelement<_T> *e) {
 		begin->prev = e;
 		e->next = begin;
 		begin = e;
-
-		return;
-	}
-
-	// if next is nullptr, then it has to be at the end, so update the end
-	if (at->next == nullptr || end == at) { // TODO VERIFY THIS!
+	} else if (at->next == nullptr || end == at) {
+		// if next is nullptr, then it has to be at the end, so update the end
 		at->next = e;
 		e->prev = at;
 		end = e;
-
-		return;
+	} else {
+		// the list is not empty, it is not at the beginning, it is not at the end:
+		// it has to be in the middle! so we can perform a normal insert
+		e->next = at->next;
+		e->prev = at;
+		at->next->prev = e;
+		at->next = e;
 	}
-
-	// the list is not empty, it is not at the beginning, it is not at the end:
-	// it has to be in the middle! Yay-normal insert
-	at->next->prev = e;
-	e->next = at->next->prev;
-	at->next = e;
-	e->prev = at;
 }
 
+
+/**
+ * Go from the end to the last_valid element, and call erase on all of them
+ */
 template <typename _T>
 void tubebase<_T>::erase_after(tubeelement<_T> *last_valid) {
 	tubeelement<_T> *e = end;
@@ -158,6 +188,9 @@ void tubebase<_T>::erase_after(tubeelement<_T> *last_valid) {
 	}
 }
 
+/** 
+ * Delete the element from the list and call delete on it.
+ */
 template <typename _T>
 void tubebase<_T>::erase(tubeelement<_T> *e) {
 	if (e == nullptr) return;
@@ -174,8 +207,8 @@ void tubebase<_T>::erase(tubeelement<_T> *e) {
 	if (e->prev != nullptr) {
 		e->prev->next = e->next;
 	}
-	//Update if we delete at /end or /begin
-	delete e; // TODO Memory management magick!
+	
+	delete e; // TODO Memory management magic!
 }
 
 }} // openage::tube

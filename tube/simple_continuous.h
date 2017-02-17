@@ -39,9 +39,11 @@ void SimpleContinuous<_T>::set_now(const tube_time_t &t) const {
 
 template <typename _T>
 _T SimpleContinuous<_T>::get() const {
-	double elapsed_frac = (double)diff_time / (double)offset;
+	double elapsed_frac = (double)offset / (double)diff_time ;
 	if (this->e_now == nullptr) { //TODO This Sucks!
 		return _T();
+	} else if (this->e_now->next == nullptr || offset == 0) {
+		return this->e_now->value; //If we cannot interpolate, treat as standing still (?)	
 	} else {
 		return this->e_now->value + (this->e_now->next->value - this->e_now->value) * elapsed_frac;
 	}

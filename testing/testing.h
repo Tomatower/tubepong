@@ -3,7 +3,7 @@
 #include <iostream>
 
 #define TESTFAILMSG(a) \
-	std::cerr << a; \
+	std::cerr << __FILE__ << ":" << __LINE__ << " " << a << std::endl; \
 	throw 1
 
 #define TESTEQUALS(left, right) \

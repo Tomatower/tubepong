@@ -1,5 +1,7 @@
 #include <chrono>
 
+#include <ncurses.h>
+
 #include <unistd.h>
 
 #include "gamestate.h"
@@ -16,28 +18,38 @@ int main() {
 	tubepong::Gui gui;
 	tubepong::Physics phys;
 	tubepong::AIInput ai;
+	bool running = true;
 	//TODO KI
-	while (1) {
+	while (running) {
+		running = false;
 		tubepong::PongState state;
 		tube::tube_time_t now = 1;
 		
+
 		state.p1.lives.set_drop(now, 3);
 		state.p1.id = 0;
-		state.p1.y = 0;
 		state.p1.size.set_drop(now, 4);
 		state.p2.lives.set_drop(now, 3);
 		state.p2.id = 1;
-		state.p2.y = gui.resolution.x-1;
 		state.p2.size.set_drop(now, 4);
 
 		auto init_speed = vertex2f(
-				((rand() % 2) * 2 - 1) * (0.1f + rand() % 4),
-				0.01f * (rand() % 100));
+				((rand() % 2) * 2 - 1) * (0.1f + rand() % 4) / 100.f,
+				0.01f * (rand() % 100) / 100.f);
 
+		gui.draw(state, now); //update gui related parameters
+		
 		state.ball.speed.set_drop(now, init_speed);
+		state.ball.position.set_drop(now, state.resolution * 0.5);
+		
+		gui.draw(state, now); //initial drawing with corrected ball
 
 		auto loop_start = Clock::now();
 //		std::cout << "1" << std::endl;
+		now += 1;
+		std::cout << "p1: " << state.p1.lives.get(now) << " p2 " << state.p2.lives.get(now) << std::endl;
+	
+
 		while (state.p1.lives.get(now) > 0 && state.p2.lives.get(now) > 0) {
 			phys.processInput(
 				state,
@@ -45,7 +57,14 @@ int main() {
 				gui.getInputs(state.p1), 
 				now
 			);
-			
+		/*
+			phys.processInput(
+				state,
+				state.p1,
+				ai.getInputs(state.p1, state.ball, now),
+				now
+			);
+		*/	
 			phys.processInput(
 				state,
 				state.p2,
@@ -53,10 +72,18 @@ int main() {
 				now
 			);
 
+
+			state.p1.y = 0;
+			state.p2.y = state.resolution[0]-1;
+			
+			phys.update(state, now);
+
+//			std::cout <<  now << std::endl;
 			gui.draw(state, now);
 			usleep(10000);	
-			
-			now += std::chrono::duration_cast<std::chrono::milliseconds>((Clock::now() - loop_start)).count();
+				
+			double dt = std::chrono::duration_cast<std::chrono::milliseconds>((Clock::now() - loop_start)).count();
+			now += dt / 10;
 			loop_start = Clock::now();
 		}
 	}

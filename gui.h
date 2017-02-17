@@ -17,10 +17,6 @@ public:
 
 private:
 	std::vector<event> input_cache;
-public:
-	struct {
-		int16_t x, y;
-	} resolution;
 };
 
 }} // openage::tubepong

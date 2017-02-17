@@ -48,12 +48,12 @@ Gui::Gui() {
 	init_pair(COLOR_PLAYER1, COLOR_BLUE,COLOR_BLUE);
 	init_pair(COLOR_PLAYER2, COLOR_RED,COLOR_RED);
 	init_pair(COLOR_BALL   , COLOR_BLUE,COLOR_WHITE);
-	init_pair(COLOR_DEBUG  , COLOR_WHITE,COLOR_BLUE);
+	init_pair(COLOR_DEBUG  , COLOR_WHITE,COLOR_BLACK);
 
 	keypad(stdscr,true);
 	noecho();
 	curs_set(0);
-	getmaxyx(stdscr,resolution.y,resolution.x);
+//	getmaxyx(stdscr,state.resolution[1], state.resolution[0]);
 
 	attron(COLOR_PAIR(COLOR_DEBUG));
 	mvprintw(4,5,"          oooooooooo                                          ");
@@ -68,43 +68,52 @@ Gui::Gui() {
 }
 
 void Gui::draw(PongState &state, const tube::tube_time_t &now) {
+//	erase();
 	//Print Score
-	erase();
-	//Print Score
-	//attron(COLOR_PAIR(COLOR_DEBUG));
+	attron(COLOR_PAIR(COLOR_DEBUG));
 	getmaxyx(stdscr, state.resolution[1], state.resolution[0]);
-	mvprintw(2, resolution.x/2-2, "%i | %i",
-			state.p1.lives.get(now),
-			state.p2.lives.get(now));
+	attron(COLOR_PAIR(COLOR_DEBUG));
+	mvprintw(2, state.resolution[0]/2-5, "P1 %i | P2 %i",
+			state.p1.lives(now),
+			state.p2.lives(now));
 
 	mvvline(0, state.resolution[0]/2, ACS_VLINE, state.resolution[1]);
 	mvprintw(0, 1, "NOW:  %f", now);
-	mvprintw(1, 1, "BALL: %f, %f", state.ball.position.get(now)[0],
-	         state.ball.position.get(now)[1]);
-	mvprintw(2, 1, "P1:   %f, %f, %i", state.p1.position.get(now), state.p1.y, state.p1.state.get(now).state);
-	mvprintw(3, 1, "P2:   %f, %f, %i", state.p2.position.get(now), state.p2.y, state.p2.state.get(now).state);
-	//attroff(COLOR_PAIR(COLOR_DEBUG));
+	mvprintw(1, 1, "SCR:  %i | %i", state.resolution[0], state.resolution[1]);
+	mvprintw(2, 1, "P1:   %f, %f, %i", state.p1.position(now), state.p1.y, state.p1.state(now).state);
+	mvprintw(3, 1, "P2:   %f, %f, %i", state.p2.position(now), state.p2.y, state.p2.state(now).state);
+	for (int i = 0; i < 1000; i += 100) {
+		mvprintw(4 + i / 100, 1, "BALL in %03i: %f | %f;    SPEED: %f | %f",
+				i,
+				state.ball.position(now + i)[0],
+				state.ball.position(now + i)[1],
+				state.ball.speed(now + i)[0],
+				state.ball.speed(now + i)[1]);
+	}
 
-	//attron(COLOR_PAIR(COLOR_PLAYER1));
-	for(int i=-state.p1.size.get(now) / 2; i < state.p1.size.get(now) / 2; i++) {
-		mvprintw(state.p1.position.get(now)+i,
+	attroff(COLOR_PAIR(COLOR_DEBUG));
+
+	attron(COLOR_PAIR(COLOR_PLAYER1));
+	for(int i=-state.p1.size(now) / 2; i < state.p1.size(now) / 2; i++) {
+		mvprintw(state.p1.position(now)+i,
 				 state.p1.y,"|");
 	}
-	//attroff(COLOR_PAIR(COLOR_PLAYER1));
+	attroff(COLOR_PAIR(COLOR_PLAYER1));
 
-	//attron(COLOR_PAIR(COLOR_PLAYER2));
-	for(int i=-state.p2.size.get(now) / 2; i < state.p2.size.get(now) / 2; i++) {
-		mvprintw(state.p2.position.get(now)+i,
+	attron(COLOR_PAIR(COLOR_PLAYER2));
+	for(int i=-state.p2.size(now) / 2; i < state.p2.size(now) / 2; i++) {
+		mvprintw(state.p2.position(now)+i,
 				 state.p2.y,"|");
 	}
-	//attroff(COLOR_PAIR(COLOR_PLAYER2));
+	attroff(COLOR_PAIR(COLOR_PLAYER2));
 
-	//attron(COLOR_PAIR(COLOR_BALL));
-
-	mvprintw(state.ball.position.get(now)[0],
-	         state.ball.position.get(now)[1],
+	attron(COLOR_PAIR(COLOR_BALL));
+	mvprintw(state.ball.position(now)[1],
+	         state.ball.position(now)[0],
 	         "o");
-	//attroff(COLOR_PAIR(COLOR_BALL));
+	attroff(COLOR_PAIR(COLOR_BALL));
+	refresh();
+	clear();
 }
 
 }} // openage::tubepong

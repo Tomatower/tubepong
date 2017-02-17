@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include "tube/simple_continuous.h"
 #include "tube/simple_discrete.h"
 #include "tube/object.h"
@@ -40,14 +41,12 @@ public:
 
 class PongBall : public tube::TubeObject {
 public:
-	tube::SimpleContinuous<util::vertex<2, float> > speed;
+	tube::SimpleDiscrete<util::vertex<2, float> > speed;
 	tube::SimpleContinuous<util::vertex<2, float> > position;
 };
 
 class PongState {
 public:
-	tube::SimpleDiscrete<float> ballspeed;
-
 	PongPlayer p1;
 	PongPlayer p2;
 
