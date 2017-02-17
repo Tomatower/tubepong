@@ -69,7 +69,8 @@ Gui::Gui() {
 
 void Gui::draw(PongState &state, const tube::tube_time_t &now) {
 //	erase();
-	//Print Score
+	clear();
+//Print Score
 	attron(COLOR_PAIR(COLOR_DEBUG));
 	getmaxyx(stdscr, state.resolution[1], state.resolution[0]);
 	attron(COLOR_PAIR(COLOR_DEBUG));
@@ -83,7 +84,7 @@ void Gui::draw(PongState &state, const tube::tube_time_t &now) {
 	mvprintw(2, 1, "P1:   %f, %f, %i", state.p1.position(now), state.p1.y, state.p1.state(now).state);
 	mvprintw(3, 1, "P2:   %f, %f, %i", state.p2.position(now), state.p2.y, state.p2.state(now).state);
 	for (int i = 0; i < 1000; i += 100) {
-		mvprintw(4 + i / 100, 1, "BALL in %03i: %f | %f;    SPEED: %f | %f",
+		mvprintw(4 + i / 100, 1, "BALL in %03i: %f | %f; SPEED: %f | %f",
 				i,
 				state.ball.position(now + i)[0],
 				state.ball.position(now + i)[1],
@@ -113,7 +114,6 @@ void Gui::draw(PongState &state, const tube::tube_time_t &now) {
 	         "o");
 	attroff(COLOR_PAIR(COLOR_BALL));
 	refresh();
-	clear();
 }
 
 }} // openage::tubepong

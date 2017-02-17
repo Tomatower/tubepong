@@ -73,19 +73,16 @@ void Physics::processInput(PongState &state, PongPlayer &player, std::vector<eve
 void Physics::update(PongState &state, const tube::tube_time_t &now) {
 
 	update_ball(state, now, init_recursion_limit);
-	/*
-	if (state.ball.position.get(now)[0] > 1) {
-		state.p2.lives.set_drop(now, state.p2.lives.get(now) - 1);
-	}
 
 	// Game loose condition
 	if (state.ball.position.get(now)[0] < 0) {
 		state.p1.lives.set_drop(now, state.p1.lives.get(now) - 1);
+		state.p1.state.set_drop(now, event(state.p1.id, event::LOST));
 	}
-	if (state.ball.position.get(now)[0] > 1) {
+	if (state.ball.position.get(now)[0] > state.resolution[0]) {
 		state.p2.lives.set_drop(now, state.p2.lives.get(now) - 1);
+		state.p2.state.set_drop(now, event(state.p2.id, event::LOST));
 	}
-	*/
 }
 
 
@@ -95,22 +92,23 @@ void Physics::update_ball(PongState &state, const tube::tube_time_t &now, int re
 	auto pos = state.ball.position.get(now);
 	
 	float ty = 0;
-	char mode = ' ';
+	//char mode = ' ';
 	if (speed [1] > 0) {
 		ty = (state.resolution[1] - pos[1]) / speed[1];
-		mode = 'v';
+		//mode = 'v';
 	} else if (speed[1] < 0) {
 		ty = pos[1] / -speed[1]; 
-		mode = '^';
+		//mode = '^';
 	}
 
-	mvprintw(20 - recursion_limit, 1, "R %i: %c TY %f | pos: %f | %f speed %f | %f res %i | %i",
+/*	mvprintw(20 - recursion_limit, 1, "R %i: %c TY %f | pos: %f | %f speed %f | %f res %i | %i",
 			init_recursion_limit - recursion_limit, mode,
 			ty,
 			pos[0], pos[1],
 			speed[0], speed[1],
 			state.resolution[0], state.resolution[1]
 		);
+*/
 	if (ty > 0) {
 		auto hit_pos = pos + speed * ty;
 		state.ball.position.set_drop(now + ty, hit_pos);

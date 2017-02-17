@@ -21,7 +21,6 @@ int main() {
 	bool running = true;
 	//TODO KI
 	while (running) {
-		running = false;
 		tubepong::PongState state;
 		tube::tube_time_t now = 1;
 		
@@ -34,8 +33,8 @@ int main() {
 		state.p2.size.set_drop(now, 4);
 
 		auto init_speed = vertex2f(
-				((rand() % 2) * 2 - 1) * (0.1f + rand() % 4) / 100.f,
-				0.01f * (rand() % 100) / 100.f);
+				((rand() % 2) * 2 - 1) * (0.1f + rand() % 4) / 70.f,
+				0.01f * (rand() % 100) / 70.f);
 
 		gui.draw(state, now); //update gui related parameters
 		
@@ -83,7 +82,7 @@ int main() {
 			usleep(10000);	
 				
 			double dt = std::chrono::duration_cast<std::chrono::milliseconds>((Clock::now() - loop_start)).count();
-			now += dt / 10;
+			now += dt;
 			loop_start = Clock::now();
 		}
 	}
