@@ -68,8 +68,8 @@ Gui::Gui() {
 }
 
 void Gui::draw(PongState &state, const tube::tube_time_t &now) {
-//	erase();
-	clear();
+	erase();
+//	clear();
 //Print Score
 	attron(COLOR_PAIR(COLOR_DEBUG));
 	getmaxyx(stdscr, state.resolution[1], state.resolution[0]);
