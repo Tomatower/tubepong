@@ -52,20 +52,21 @@ int main() {
 	
 
 		while (state.p1.lives.get(now) > 0 && state.p2.lives.get(now) > 0) {
+#ifdef HUMAN
 			phys.processInput(
 				state,
 				state.p1,
 				gui.getInputs(state.p1), 
 				now
 			);
-		/*
+#else
 			phys.processInput(
 				state,
 				state.p1,
 				ai.getInputs(state.p1, state.ball, now),
 				now
 			);
-		*/	
+#endif 
 			phys.processInput(
 				state,
 				state.p2,
@@ -83,7 +84,7 @@ int main() {
 			gui.draw(state, now);
 			usleep(10000);	
 				
-			double dt = std::chrono::duration_cast<std::chrono::milliseconds>((Clock::now() - loop_start)).count();
+		//	double dt = std::chrono::duration_cast<std::chrono::milliseconds>((Clock::now() - loop_start)).count();
 			now += 10; //dt;
 			loop_start = Clock::now();
 		}

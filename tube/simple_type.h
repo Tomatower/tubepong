@@ -30,6 +30,8 @@ public:
 	virtual _T operator ()(const tube_time_t &now) {
 		return std::move(get(now));
 	}
+
+	virtual bool needs_update(const tube_time_t &at);
 public:
 	// Inserter mode
 	void set_drop(const tube_time_t &at, const _T &value);
@@ -63,6 +65,16 @@ void SimpleType<_T>::set_drop(const tube_time_t &at, const _T &value) {
 template <typename _T>
 void SimpleType<_T>::set_insert(const tube_time_t &at, const _T &value) {
 	container.create(at, value);
+}
+
+template <typename _T>
+bool SimpleType<_T>::needs_update(const tube_time_t &at) {
+	auto e = container.last(at, e_now); //TODO take container.end as a hint?
+	if (e->time > at || e->next == nullptr || e->next->time > at) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 }} // openage::tube

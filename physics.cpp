@@ -53,36 +53,49 @@ void Physics::processInput(PongState &state, PongPlayer &player, std::vector<eve
 			}
 		}
 	}
+}
 
-	// TODO Paddle collission will be handled on-demand (framebased :) )
-	/*auto ball = state.ball.position.get(now);
-	if (ball[0] <=2
-			&& ball[0] > state.p1.position.get(now) - state.p1.size.get(now) / 2
-			&& ball[0] < state.p1.position.get(now) + state.p1.size.get(now) / 2
+void Physics::update(PongState &state, const tube::tube_time_t &now) {
+
+
+	auto pos = state.ball.position.get(now);
+	//Handle panel p1 
+	if (pos[0] <= 1
+			&& pos[1] > state.p1.position.get(now) - state.p1.size.get(now) / 2
+			&& pos[1] < state.p1.position.get(now) + state.p1.size.get(now) / 2
 			&& state.ball.speed.get(now)[0] < 0) {
 		//Ball hit the paddel in this frame
 		auto s = state.ball.speed.get(now);
 		s[0] *= -1.0;
 		state.ball.speed.set_drop(now, s);
-		
+		state.ball.position.set_drop(now, pos); // this line can handle the future!
+
 		update_ball(state, now, init_recursion_limit);
+	} else if (pos[0] >= state.resolution[0] - 1
+			&& pos[1] > state.p2.position.get(now) - state.p2.size.get(now) / 2
+			&& pos[1] < state.p2.position.get(now) + state.p2.size.get(now) / 2
+			&& state.ball.speed.get(now)[0] > 0) {
+		//Ball hit the paddel in this frame
+		auto s = state.ball.speed.get(now);
+		s[0] *= -1.0;
+		state.ball.speed.set_drop(now, s);
+		state.ball.position.set_drop(now, pos); // this line can handle the future!
 
-	}*/
-}
-
-void Physics::update(PongState &state, const tube::tube_time_t &now) {
-
-	update_ball(state, now, init_recursion_limit);
-
+		update_ball(state, now, init_recursion_limit);
+	} else if (state.ball.position.needs_update(now)) {
+		update_ball(state, now, init_recursion_limit);
+	}
+	
 	// Game loose condition
-	if (state.ball.position.get(now)[0] < 0) {
+	if (pos[0] < 0) {
 		state.p1.lives.set_drop(now, state.p1.lives.get(now) - 1);
 		state.p1.state.set_drop(now, event(state.p1.id, event::LOST));
 	}
-	if (state.ball.position.get(now)[0] > state.resolution[0]) {
+	if (pos[0] > state.resolution[0]) {
 		state.p2.lives.set_drop(now, state.p2.lives.get(now) - 1);
 		state.p2.state.set_drop(now, event(state.p2.id, event::LOST));
 	}
+	
 }
 
 
